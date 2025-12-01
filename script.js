@@ -157,17 +157,33 @@ function renderProjects() {
     const list = document.getElementById(PROJECT_LIST_ELEMENT_ID);
     list.innerHTML = '';
 
-    // Create a clean list of projects to render
-    const validProjectEntries = Object.entries(projects).filter(([, project]) => {
+    // Validate entries
+    let validProjectEntries = Object.entries(projects).filter(([, project]) => {
         return project && typeof project === 'object';
     });
 
-    // Fix stray running startTimes (compare IDs properly)
+    // Fix stray running states
     validProjectEntries.forEach(([id, project]) => {
         if (id !== activeProjectId && project.startTime) {
             project.startTime = null;
         }
     });
+
+    validProjectEntries.sort(([idA, projA], [idB, projB]) => {
+        const getTotal = (p, id) => {
+            let total = p.totalSeconds;
+            if (activeProjectId === id && p.startTime) {
+                total += Math.floor((Date.now() - p.startTime) / 1000);
+            }
+            return total;
+        };
+
+        const timeA = getTotal(projA, idA);
+        const timeB = getTotal(projB, idB);
+
+        return timeB - timeA; // Descending
+    });
+    // ---------------------------------------------------------------------------
 
     // Event delegation
     list.removeEventListener('click', handleProjectAction);
@@ -184,15 +200,11 @@ function renderProjects() {
         return;
     }
 
-    // Render each project
-    console.log("Rendering projects:", validProjectEntries);
-
+    // Render sorted list
     validProjectEntries.forEach(([id, project]) => {
-        console.log("Rendering project:", id, project);
-
         let displaySeconds = project.totalSeconds;
-        const isRunning = activeProjectId === id;
 
+        const isRunning = activeProjectId === id;
         if (isRunning && project.startTime) {
             const elapsed = Math.floor((Date.now() - project.startTime) / 1000);
             displaySeconds += elapsed;
@@ -225,6 +237,7 @@ function renderProjects() {
 }
 
 
+
 /**
  * Updates the time display for the currently active project.
  * Uses requestAnimationFrame for smooth, browser-optimized updates.
@@ -243,42 +256,42 @@ function updateActiveTimerDisplay() {
 
         // NEW: update global active elapsed display
         updateActiveTotalElapsed();
-        updateActiveProjectDisplay();
+        // updateActiveProjectDisplay();
 
         requestAnimationFrame(updateActiveTimerDisplay);
     }
 }
 
-/**
- * Renders the currently active project's name and total elapsed time
- * in the header section under the Sydney clock.
- */
-function updateActiveProjectDisplay() {
-    const el = document.getElementById('activeProjectDisplay');
-    if (!el) return;
+// /**
+//  * Renders the currently active project's name and total elapsed time
+//  * in the header section under the Sydney clock.
+//  */
+// function updateActiveProjectDisplay() {
+//     const el = document.getElementById('activeProjectDisplay');
+//     if (!el) return;
 
-    if (!activeProjectId) {
-        el.innerHTML = '';
-        return;
-    }
+//     if (!activeProjectId) {
+//         el.innerHTML = '';
+//         return;
+//     }
 
-    const project = projects[activeProjectId];
-    if (!project) {
-        el.innerHTML = '';
-        return;
-    }
+//     const project = projects[activeProjectId];
+//     if (!project) {
+//         el.innerHTML = '';
+//         return;
+//     }
 
-    let seconds = project.totalSeconds;
+//     let seconds = project.totalSeconds;
 
-    if (project.startTime) {
-        seconds += Math.floor((Date.now() - project.startTime) / 1000);
-    }
+//     if (project.startTime) {
+//         seconds += Math.floor((Date.now() - project.startTime) / 1000);
+//     }
 
-    el.innerHTML = `
-        <div class="project-name">${project.name}</div>
-        <div class="project-time">${formatTime(seconds)}</div>
-    `;
-}
+//     el.innerHTML = `
+//         <div class="project-name">${project.name}</div>
+//         <div class="project-time">${formatTime(seconds)}</div>
+//     `;
+// }
 
 
 // --- Core Timer Logic ---
@@ -309,7 +322,7 @@ function startTimer(id) {
 
     // Start the continuous display update loop
     updateActiveTimerDisplay();
-    updateActiveProjectDisplay()
+    // updateActiveProjectDisplay()
 }
 
 /**
@@ -329,7 +342,7 @@ function stopTimer(id) {
 
     // Save the final logged time
     saveProjects();
-    updateActiveProjectDisplay();
+    // updateActiveProjectDisplay();
 }
 
 /**
@@ -390,17 +403,20 @@ function handleProjectAction(event) {
  * Displays the total elapsed time for the currently active project.
  */
 function updateActiveTotalElapsed() {
-    const el = document.getElementById('activeTotalTime');
-    if (!el) return;
+    const elTime = document.getElementById('activeTotalTime');
+    const elText = document.getElementById('activeTotalTimeText');
+    if (!elTime || !elText) return;
 
     if (!activeProjectId) {
-        el.textContent = '';
+        elTime.textContent = '';
+        elText.textContent = '';
         return;
     }
 
     const project = projects[activeProjectId];
     if (!project) {
-        el.textContent = '';
+        elTime.textContent = '';
+        elText.textContent = '';
         return;
     }
 
@@ -411,9 +427,8 @@ function updateActiveTotalElapsed() {
         seconds += elapsed;
     }
 
-    console.log("project", project)
-
-    el.textContent = `${project.name} elapsed: ${formatTime(seconds)}`;
+    elText.textContent = `${project.name}`;
+    elTime.textContent = `${ formatTime(seconds) }`;
 }
 
 
