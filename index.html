@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Time Tracker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="theme-toggle" id="themeToggle">
+        <span class="theme-icon">🌙</span>
+    </div>
+
+    <div class="main-layout-container">
+        <div class="project-panel">
+            <h1>Project Time Tracker</h1>
+
+            <div class="project-input">
+                <input type="text" id="newProjectName" placeholder="Enter project name...">
+                <button id="addProjectBtn">Add Project</button>
+            </div>
+
+            <div id="projectList"></div>
+        </div>
+
+        <div class="clock-sidebar">
+            <h2>Current Time</h2>
+            <div class="city-name">Sydney, Australia</div>
+            <div id="currentClock" class="current-clock">--:--:--</div>
+            <div id="activeTotalTime" class="active-project-display"></div>
+            <!-- <div class="timezone-info">AEDT (UTC+11)</div> -->
+        </div>
+    </div>
+    <script src="script.js"></script>
+
+    
+</body>
+
+</html>
