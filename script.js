@@ -30,6 +30,21 @@ function updateThemeIcon(theme) {
     themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
 }
 
+function heartbeat() {
+    updateSydneyTime();
+    updateActiveTotalElapsed();
+
+    // Re-render every second so sorted projects stay in right order
+    renderProjects();
+}
+
+
+// Run instantly at load
+heartbeat();
+
+// Run every second perfectly synchronized
+setInterval(heartbeat, 1000);
+
 /**
  * Initializes and handles the theme switching functionality.
  */
@@ -238,29 +253,29 @@ function renderProjects() {
 
 
 
-/**
- * Updates the time display for the currently active project.
- * Uses requestAnimationFrame for smooth, browser-optimized updates.
- */
-function updateActiveTimerDisplay() {
-    if (!activeProjectId) return;
+// /**
+//  * Updates the time display for the currently active project.
+//  * Uses requestAnimationFrame for smooth, browser-optimized updates.
+//  */
+// function updateActiveTimerDisplay() {
+//     if (!activeProjectId) return;
 
-    const project = projects[activeProjectId];
-    const timeDisplay = document.querySelector(`[data-time-display-id="${activeProjectId}"]`);
+//     const project = projects[activeProjectId];
+//     const timeDisplay = document.querySelector(`[data-time-display-id="${activeProjectId}"]`);
 
-    if (project && project.startTime && timeDisplay) {
-        const elapsed = Math.floor((Date.now() - project.startTime) / 1000);
-        const totalDisplayTime = project.totalSeconds + elapsed;
+//     if (project && project.startTime && timeDisplay) {
+//         const elapsed = Math.floor((Date.now() - project.startTime) / 1000);
+//         const totalDisplayTime = project.totalSeconds + elapsed;
 
-        timeDisplay.textContent = formatTime(totalDisplayTime);
+//         timeDisplay.textContent = formatTime(totalDisplayTime);
 
-        // NEW: update global active elapsed display
-        updateActiveTotalElapsed();
-        // updateActiveProjectDisplay();
+//         // NEW: update global active elapsed display
+//         updateActiveTotalElapsed();
+//         // updateActiveProjectDisplay();
 
-        requestAnimationFrame(updateActiveTimerDisplay);
-    }
-}
+//         requestAnimationFrame(updateActiveTimerDisplay);
+//     }
+// }
 
 // /**
 //  * Renders the currently active project's name and total elapsed time
@@ -319,9 +334,11 @@ function toggleTimer(id) {
 function startTimer(id) {
     projects[id].startTime = Date.now();
     activeProjectId = id;
+    updateActiveTotalElapsed();
+    renderProjects();
 
     // Start the continuous display update loop
-    updateActiveTimerDisplay();
+    // updateActiveTimerDisplay();
     // updateActiveProjectDisplay()
 }
 
@@ -343,6 +360,8 @@ function stopTimer(id) {
     // Save the final logged time
     saveProjects();
     // updateActiveProjectDisplay();
+    updateActiveTotalElapsed();
+renderProjects();
 }
 
 /**
@@ -428,7 +447,7 @@ function updateActiveTotalElapsed() {
     }
 
     elText.textContent = `${project.name}`;
-    elTime.textContent = `${ formatTime(seconds) }`;
+    elTime.textContent = `${formatTime(seconds)}`;
 }
 
 
@@ -447,15 +466,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. Initialize Theme Toggle 
     initializeThemeToggle();
 
-    // Lines removed here: updateSydneyTime() and setInterval(...)
-    updateSydneyTime();
-    setInterval(updateSydneyTime, 1000);
-
     // 4. Initial project rendering
     renderProjects();
 
-    // 5. If a project was running (which we cleared on load), restart the display update
-    if (activeProjectId) {
-        updateActiveTimerDisplay();
-    }
+    heartbeat();
+    setInterval(heartbeat, 1000);
 });
